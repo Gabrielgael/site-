@@ -1,1 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blender Fácil: Modelagem 3D Interativa</title>
+    <!-- Carregando Tailwind CSS para estilização moderna e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carregando Three.js para renderização 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Configuração do Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'blender-blue': '#F57D27', // Laranja
+                        'blender-dark': '#1C2833',
+                        'blender-light': '#EBF5FB',
+                        'cube-default': '#4A90E2', // Azul para o cubo
+                        'cube-selected': '#7ED321', // Verde para o cubo selecionado
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background-color: #f8f8f8;
+        }
+        .arrow-icon {
+            transition: transform 0.3s ease;
+        }
+        .rotated {
+            transform: rotate(90deg);
+        }
+        /* Estilo para o Canvas 3D */
+        #interactive-scene {
+            width: 100%;
+            height: 400px; /* Altura fixa para a visualização 3D */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            background-color: #282c34; /* Fundo escuro do Blender */
+        }
+        /* Classe para esconder a ajuda de transformação */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-blender-light text-blender-dark">
 
+    <!-- Cabeçalho Principal (Mantido) -->
+    <header class="bg-blender-dark shadow-xl">
+        <div class="container mx-auto px-4 py-4 md:py-6 flex justify-between items-center">
+            <h1 class="text-3xl font-extrabold text-blender-blue tracking-wider">
+                Blender Fácil 3D
+            </h1>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#inicio" class="text-white hover:text-blender-blue transition duration-200 font-medium">Início 3D</a>
+                <a href="#aulas" class="text-white hover:text-blender-blue transition duration-200 font-medium">Aulas</a>
+                <a href="#ferramentas" class="text-white hover:text-blender-blue transition duration-200 font-medium">Recursos</a>
+            </nav>
+            <button class="md:hidden text-white focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="container mx-auto px-4 py-8 md:py-12">
+
+        <!-- Seção Interativa 3D -->
+        <section id="inicio" class="mb-12 p-4 bg-white rounded-xl shadow-lg border-t-4 border-blender-blue">
+            <h2 class="text-3xl font-bold mb-4 text-blender-dark">
+                Simulador de Modelagem Blender
+            </h2>
+            <p class="text-md text-gray-700 leading-relaxed mb-4">
+                Clique no cubo abaixo para selecioná-lo e use as teclas **G, R, S** para Transformar! (Pressione **ESC** para cancelar.)
+            </p>
+            
+            <!-- Container do Canvas 3D -->
+            <div id="interactive-scene" class="mb-4"></div>
+
+            <!-- Ajuda de Transformação (Feedback) -->
+            <div id="transform-help" class="hidden text-center p-3 font-semibold rounded-lg text-white" style="background-color: #2C3E50;">
+                <span id="transform-message" class="text-lg"></span>
+            </div>
+
+            <div class="mt-4 text-center">
+                <a href="#aulas" class="inline-block px-8 py-3 bg-blender-blue text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition duration-300 transform hover:scale-105">
+                    Ir para as Aulas Teóricas
+                </a>
+            </div>
+        </section>
+
+        <!-- Seção de Aulas Interativas (Mantida) -->
+        <section id="aulas" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-blender-dark border-b-2 border-gray-300 pb-2">
+                Aulas Fundamentais de Modelagem
+            </h2>
+            
+            <!-- Aula 1: Interface e Navegação -->
+            <div class="aula-card mb-4 bg-white rounded-xl shadow-md overflow-hidden">
+                <button class="w-full text-left p-5 flex justify-between items-center bg-gray-100 hover:bg-gray-200 transition duration-200 focus:outline-none border-b border-gray-200" onclick="toggleAula(1)">
+                    <span class="text-xl font-semibold text-blender-dark">1. Conhecendo a Interface e Navegação</span>
+                    <span class="arrow-icon text-2xl text-blender-blue" id="arrow-1">></span>
+                </button>
+                <div id="aula-content-1" class="p-5 hidden">
+                    <p class="mb-3 text-gray-700">O primeiro passo é dominar o ambiente de trabalho. A interface do Blender pode ser intimidante, mas vamos simplificá-la:</p>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700 ml-4">
+                        <li>**Área 3D:** É o palco onde sua modelagem acontece.</li>
+                        <li>**Outliner:** Onde você gerencia todos os objetos, luzes e câmeras da cena.</li>
+                        <li>**Propriedades:** Painel crucial para ajustar as configurações de objetos, materiais e renderização.</li>
+                    </ul>
+                    <p class="mt-4 font-semibold text-blender-blue">Dica de Navegação:</p>
+                    <p class="text-gray-600">Use o botão do meio do mouse (scroll) para orbitar, Shift + Meio do Mouse para mover lateralmente (pan) e o scroll para zoom.</p>
+                </div>
+            </div>
+
+            <!-- Aula 2: Objetos Primitivos e Transformações -->
+            <div class="aula-card mb-4 bg-white rounded-xl shadow-md overflow-hidden">
+                <button class="w-full text-left p-5 flex justify-between items-center bg-gray-100 hover:bg-gray-200 transition duration-200 focus:outline-none border-b border-gray-200" onclick="toggleAula(2)">
+                    <span class="text-xl font-semibold text-blender-dark">2. Objetos Primitivos e Transformações</span>
+                    <span class="arrow-icon text-2xl text-blender-blue" id="arrow-2">></span>
+                </button>
+                <div id="aula-content-2" class="p-5 hidden">
+                    <p class="mb-3 text-gray-700">Toda modelagem começa com algo simples. Os "Primitivos" (Cube, Sphere, Cylinder) são a base:</p>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700 ml-4">
+                        <li>**Adicionar Objeto:** Pressione <kbd class="px-2 py-1 bg-gray-200 rounded text-sm font-mono">Shift + A</kbd> e escolha um Mesh (Malha).</li>
+                        <li>**Mover (Grab):** Pressione <kbd class="px-2 py-1 bg-gray-200 rounded text-sm font-mono">G</kbd>.</li>
+                        <li>**Rotacionar (Rotate):** Pressione <kbd class="px-2 py-1 bg-gray-200 rounded text-sm font-mono">R</kbd>.</li>
+                        <li>**Escalonar (Scale):** Pressione <kbd class="px-2 py-1 bg-gray-200 rounded text-sm font-mono">S</kbd>.</li>
+                    </ul>
+                    <p class="mt-4 text-gray-600">Lembre-se: Após pressionar G, R ou S, você pode pressionar X, Y ou Z para limitar a transformação a um eixo específico.</p>
+                </div>
+            </div>
+
+            <!-- Aula 3: O Poder do Modo Edição (Edit Mode) -->
+            <div class="aula-card mb-4 bg-white rounded-xl shadow-md overflow-hidden">
+                <button class="w-full text-left p-5 flex justify-between items-center bg-gray-100 hover:bg-gray-200 transition duration-200 focus:outline-none" onclick="toggleAula(3)">
+                    <span class="text-xl font-semibold text-blender-dark">3. O Poder do Modo Edição (Edit Mode)</span>
+                    <span class="arrow-icon text-2xl text-blender-blue" id="arrow-3">></span>
+                </button>
+                <div id="aula-content-3" class="p-5 hidden">
+                    <p class="mb-3 text-gray-700">Onde a mágica da modelagem acontece. O Modo Edição permite manipular vértices, arestas e faces:</p>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700 ml-4">
+                        <li>**Alternar Modos:** Pressione <kbd class="px-2 py-1 bg-gray-200 rounded text-sm font-mono">Tab</kbd> para ir do Modo Objeto para o Modo Edição.</li>
+                        <li>**Extrusão:** Selecione uma face e pressione <kbd class="px-2 py-1 bg-gray-200 rounded text-sm font-mono">E</kbd> para puxar e criar nova geometria.</li>
+                        <li>**Loop Cut:** Pressione <kbd class="px-2 py-1 bg-gray-200 rounded text-sm font-mono">Ctrl + R</kbd> para adicionar loops de arestas e criar detalhes.</li>
+                        <li>**Bevel:** Pressione <kbd class="px-2 py-1 bg-gray-200 rounded text-sm font-mono">Ctrl + B</kbd> para arredondar cantos.</li>
+                    </ul>
+                    <p class="mt-4 text-gray-600">Com Extrusão e Loop Cut, você pode modelar quase tudo! Pratique a criação de uma mesa ou cadeira simples.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção de Ferramentas e Recursos (Mantida) -->
+        <section id="ferramentas" class="p-6 bg-blender-dark text-white rounded-xl shadow-xl">
+            <h2 class="text-3xl font-bold mb-4 text-blender-blue">Recursos Adicionais</h2>
+            <p class="mb-4">Para quem quer ir além dos fundamentos:</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="p-4 bg-gray-700 rounded-lg shadow-inner">
+                    <h3 class="text-xl font-semibold mb-2">Modificadores</h3>
+                    <p class="text-sm">Os modificadores (Modifiers) são ferramentas não-destrutivas essenciais. Experimente os de "Subdivision Surface" (para suavizar) e "Mirror" (para simetria).</p>
+                </div>
+                <div class="p-4 bg-gray-700 rounded-lg shadow-inner">
+                    <h3 class="text-xl font-semibold mb-2">Comunidade Blender</h3>
+                    <p class="text-sm">A comunidade é enorme! Procure por tutoriais no YouTube e fóruns. A prática diária é o segredo para o sucesso.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Rodapé (Mantido) -->
+    <footer class="bg-gray-800 text-center p-4 text-gray-400 mt-8">
+        <p>&copy; 2025 Blender Fácil. Todos os direitos reservados. Feito para aprender 3D.</p>
+    </footer>
+
+    <!-- Script JavaScript para UI e 3D -->
+    <script type="module">
+        // Configurações do Firebase (mantidas por requisito do ambiente)
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // ----------------------------------------------------------------------
+        // Lógica de UI (Aulas Colapsáveis)
+        // ----------------------------------------------------------------------
+
+        function toggleAula(id) {
+            const content = document.getElementById('aula-content-' + id);
+            const arrow = document.getElementById('arrow-' + id);
+
+            // Código para abrir/fechar a seção de aula (accordion)
+            if (content.classList.contains('hidden')) {
+                // Esconde todos os outros e mostra o clicado
+                document.querySelectorAll('[id^="aula-content-"]').forEach(c => c.classList.add('hidden'));
+                document.querySelectorAll('[id^="arrow-"]').forEach(a => a.classList.remove('rotated'));
+
+                content.classList.remove('hidden');
+                arrow.classList.add('rotated');
+            } else {
+                content.classList.add('hidden');
+                arrow.classList.remove('rotated');
+            }
+        }
+        window.toggleAula = toggleAula; // Exporta para o escopo global
+
+        // ----------------------------------------------------------------------
+        // Lógica 3D Interativa (Three.js)
+        // ----------------------------------------------------------------------
+
+        let scene, camera, renderer, cube;
+        let raycaster, mouse, INTERSECTED;
+        let selectedObject = null;
+        let transformMode = null; // 'G', 'R', 'S'
+        let transformMessage = document.getElementById('transform-message');
+        let transformHelp = document.getElementById('transform-help');
+
+        // Ponto de interseção com o plano
+        const plane = new THREE.Plane();
+        const pointer = new THREE.Vector2();
+        const intersection = new THREE.Vector3();
+
+        // Variáveis de câmera (simulando órbita básica)
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        const rotationSpeed = 0.005;
+
+        function init() {
+            const container = document.getElementById('interactive-scene');
+            if (!container) return;
+
+            // 1. Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x282c34);
+
+            // 2. Camera
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 1.5, 4);
+            camera.lookAt(0, 0, 0);
+
+            // 3. Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            // 4. Geometry and Material (The Cube)
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            const material = new THREE.MeshLambertMaterial({ color: 0x4A90E2 }); // cube-default
+            cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+
+            // 5. Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 2); // soft white light
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+
+            // 6. Raycaster and Mouse
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // 7. Ground Plane (para raycasting de movimento)
+            const groundGeometry = new THREE.PlaneGeometry(100, 100);
+            const groundMaterial = new THREE.MeshBasicMaterial({ color: 0xcccccc, visible: false }); // Invisível
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -0.5;
+            scene.add(ground);
+            
+            // Define o plano de interseção do raycaster
+            plane.setFromNormalAndCoplanarPoint(new THREE.Vector3(0, 1, 0), ground.position);
+
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize, false);
+            container.addEventListener('click', onCanvasClick, false);
+            container.addEventListener('mousemove', onCanvasMouseMove, false);
+            container.addEventListener('mousedown', onCanvasMouseDown, false);
+            container.addEventListener('mouseup', onCanvasMouseUp, false);
+            document.addEventListener('keydown', onKeyDown, false);
+
+            animate();
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('interactive-scene');
+            if (!container) return;
+
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotação da câmera para simular órbita se nada estiver sendo transformado
+            if (!transformMode) {
+                // Rotação automática suave
+                camera.position.x = Math.sin(Date.now() * 0.0002) * 4;
+                camera.position.z = Math.cos(Date.now() * 0.0002) * 4;
+                camera.lookAt(0, 0, 0);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function updateMouse(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        }
+        
+        // Função para mostrar feedback da transformação
+        function showTransformHelp(message) {
+            transformMessage.textContent = message;
+            transformHelp.classList.remove('hidden');
+        }
+
+        // Função para esconder feedback
+        function hideTransformHelp() {
+            transformMode = null;
+            transformHelp.classList.add('hidden');
+        }
+
+        // Simula o clique de seleção do Blender
+        function onCanvasClick(event) {
+            if (transformMode) return; // Se estiver em modo de transformação, o clique deve ser para confirmar
+
+            updateMouse(event);
+            raycaster.setFromCamera(mouse, camera);
+
+            const intersects = raycaster.intersectObjects(scene.children);
+
+            if (intersects.length > 0) {
+                const intersection = intersects[0];
+                if (intersection.object === cube) {
+                    if (selectedObject === cube) {
+                        // Desselecionar se já estiver selecionado
+                        selectedObject.material.color.set(0x4A90E2); // Voltar cor default
+                        selectedObject = null;
+                    } else {
+                        // Selecionar
+                        if (selectedObject) selectedObject.material.color.set(0x4A90E2);
+                        selectedObject = cube;
+                        selectedObject.material.color.set(0x7ED321); // Cor de seleção
+                    }
+                }
+            } else {
+                // Clicou fora, deseleciona
+                if (selectedObject) {
+                    selectedObject.material.color.set(0x4A90E2);
+                    selectedObject = null;
+                }
+            }
+        }
+
+        // Simula a transformação durante o movimento do mouse
+        function onCanvasMouseMove(event) {
+            updateMouse(event);
+
+            if (selectedObject && transformMode) {
+                raycaster.setFromCamera(mouse, camera);
+                
+                // Pega a interseção com o plano
+                if (raycaster.ray.intersectPlane(plane, intersection)) {
+                    const movementFactor = 0.005; // Fator para escala e rotação
+                    const deltaX = event.clientX - previousMousePosition.x;
+                    const deltaY = event.clientY - previousMousePosition.y;
+
+                    switch (transformMode) {
+                        case 'G': // Grab (Mover)
+                            selectedObject.position.x = intersection.x;
+                            selectedObject.position.z = intersection.z;
+                            break;
+                        case 'R': // Rotate (Rotacionar)
+                            selectedObject.rotation.y += deltaX * rotationSpeed * 5;
+                            break;
+                        case 'S': // Scale (Escalar)
+                            const scaleChange = deltaX * movementFactor;
+                            selectedObject.scale.x += scaleChange;
+                            selectedObject.scale.y += scaleChange;
+                            selectedObject.scale.z += scaleChange;
+                            
+                            // Garante que o objeto não tenha escala negativa
+                            selectedObject.scale.clampScalar(0.1, 10);
+                            break;
+                    }
+                }
+            }
+            previousMousePosition = { x: event.clientX, y: event.clientY };
+        }
+
+        // Handle Mouse Down and Up for camera drag
+        function onCanvasMouseDown(event) {
+            isDragging = true;
+            previousMousePosition = { x: event.clientX, y: event.clientY };
+        }
+
+        function onCanvasMouseUp(event) {
+            isDragging = false;
+        }
+
+        // Simula atalhos de teclado do Blender
+        function onKeyDown(event) {
+            const key = event.key.toUpperCase();
+
+            if (!selectedObject) {
+                if (key === 'ESCAPE') {
+                    hideTransformHelp();
+                }
+                return;
+            }
+
+            if (key === 'G' || key === 'R' || key === 'S') {
+                if (transformMode === key) {
+                    // Pressionou de novo: confirma a transformação (simplesmente termina o modo)
+                    hideTransformHelp();
+                } else {
+                    transformMode = key;
+                    let message = '';
+                    switch (key) {
+                        case 'G': message = "MODO: MOVER (G). Clique para confirmar/ESC para cancelar."; break;
+                        case 'R': message = "MODO: ROTACIONAR (R). Clique para confirmar/ESC para cancelar."; break;
+                        case 'S': message = "MODO: ESCALONAR (S). Clique para confirmar/ESC para cancelar."; break;
+                    }
+                    showTransformHelp(message);
+                }
+            } else if (key === 'ESCAPE') {
+                // Cancela qualquer transformação ativa
+                hideTransformHelp();
+            }
+        }
+
+        // Inicializa a cena quando a janela carregar
+        window.onload = function() {
+            init();
+        }
+
+    </script>
+</body>
+</html>
